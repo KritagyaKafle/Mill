@@ -2,12 +2,17 @@ import React, { useRef, useEffect, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import ScrollFloat from './ScrollFloat';
+import TextPressure from './TextPressure';
 
 gsap.registerPlugin(ScrollTrigger);
 
 const HeroCanvas: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
+  const text1Ref = useRef<HTMLDivElement>(null);
+  const text2Ref = useRef<HTMLDivElement>(null);
+  const text3Ref = useRef<HTMLDivElement>(null);
+  const productRef = useRef<HTMLImageElement>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
   const frameCount = 80;
 
@@ -32,7 +37,7 @@ const HeroCanvas: React.FC = () => {
       if (loadedImages[frameIndex]) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        // Use object-cover behavior to eliminate any borders (fill the entire screen)
+        // Use object-cover behavior to eliminate borders
         const hRatio = canvas.width / loadedImages[frameIndex].width;
         const vRatio = canvas.height / loadedImages[frameIndex].height;
         const ratio = Math.max(hRatio, vRatio);
@@ -71,12 +76,24 @@ const HeroCanvas: React.FC = () => {
       }
     });
 
+    // Master Timeline for canvas frames
     tl.to(playhead, {
       frame: frameCount - 1,
       snap: 'frame',
       ease: 'none',
       onUpdate: () => render(playhead.frame)
     }, 0);
+
+    // Fade sequences for the text wrappers (adjusted to switch sooner)
+    tl.to(text1Ref.current, { opacity: 0, duration: 0.1, ease: 'power2.inOut' }, 0.15);
+    
+    tl.fromTo(text2Ref.current, { opacity: 0 }, { opacity: 1, duration: 0.1, ease: 'power2.inOut' }, 0.20);
+    tl.to(text2Ref.current, { opacity: 0, duration: 0.1, ease: 'power2.inOut' }, 0.45);
+    
+    tl.fromTo(text3Ref.current, { opacity: 0 }, { opacity: 1, duration: 0.1, ease: 'power2.inOut' }, 0.55);
+
+    // Grand Reveal: Fade in the crisp foreground product PNG
+    tl.fromTo(productRef.current, { opacity: 0, scale: 0.95 }, { opacity: 1, scale: 1, duration: 0.15, ease: 'power2.out' }, 0.50);
 
     const handleResize = () => {
       canvas.width = window.innerWidth;
@@ -95,27 +112,61 @@ const HeroCanvas: React.FC = () => {
     <section ref={sectionRef} id="hero-canvas" className={`relative w-full ${reducedMotion ? 'min-h-[50vh] py-20' : 'h-screen'} overflow-hidden flex items-center justify-center bg-white`}>
       
       {/* Background canvas layer */}
-      <div className="absolute inset-0 w-full h-full z-10 flex items-center justify-center">
+      <div className="absolute inset-0 w-full h-full z-0 flex items-center justify-center">
         {reducedMotion ? (
            <img src="/images/hero-frames/001.webp" className="w-full h-full object-cover mix-blend-multiply opacity-90" alt="Mustard processing" />
         ) : (
           <canvas 
             ref={canvasRef} 
-            className="w-full h-full mix-blend-multiply opacity-90 filter contrast-125 saturate-150 transition-all duration-700"
+            className="w-full h-full mix-blend-multiply opacity-100 transition-all duration-700"
           />
         )}
       </div>
 
-      {/* Frosted Glass Text Overlay Layer */}
-      <div className="absolute inset-0 flex flex-col items-center justify-between py-20 z-20 pointer-events-none">
+      {/* Full Canvas Liquid Glass Overlay (Warm Tint) */}
+      <div className="absolute inset-0 z-10 backdrop-blur-md pointer-events-none mix-blend-normal" style={{ backgroundColor: 'rgba(255, 249, 230, 0.4)' }}></div>
+
+      {/* TextPressure Sequence 3 - Placed BEHIND the bottle (z-14) */}
+      <div className="absolute inset-0 flex items-center justify-center z-14 pointer-events-none">
+        <div ref={text3Ref} className="absolute flex flex-col items-center justify-center opacity-0 w-full px-4" style={{ pointerEvents: 'auto' }}>
+          <div className="w-full" style={{ position: 'relative', height: '300px' }}>
+            <TextPressure
+              text="Golden Purity"
+              flex
+              alpha={false}
+              stroke={false}
+              width={true}
+              weight={true}
+              scale={false}
+              italic={false}
+              textColor="var(--color-charcoal)"
+              className="gap-1 md:gap-3"
+              minFontSize={96}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Crisp Foreground Product PNG (Grand Reveal) */}
+      <div className="absolute inset-0 flex items-center justify-center z-15 pointer-events-none">
+        <img 
+          ref={productRef}
+          src="/images/product_nobg.png" 
+          alt="Golden Purity Mustard Oil" 
+          className="absolute w-full h-full object-cover opacity-0 drop-shadow-2xl" 
+        />
+      </div>
+
+      {/* Clean Mask-Style Typography Layer */}
+      <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
         
-        {/* Top Text Panel */}
-        <div className="mt-8 px-10 py-6 rounded-3xl bg-white/60 backdrop-blur-xl border border-white/40 shadow-2xl">
-          <div className="font-display text-[4vw] md:text-[3vw] font-bold text-[var(--color-leaf-green-900)]">
+        {/* Sequence 1 */}
+        <div ref={text1Ref} className="absolute flex flex-col items-center justify-center">
+          <div className="font-display text-[8vw] md:text-[6vw] font-black tracking-tight text-[var(--color-charcoal)] leading-none drop-shadow-sm">
             <ScrollFloat
               animationDuration={1}
               ease="back.inOut(2)"
-              scrollStart="top bottom-=10%"
+              scrollStart="top bottom-=20%"
               scrollEnd="bottom center"
               stagger={0.03}
             >
@@ -124,32 +175,17 @@ const HeroCanvas: React.FC = () => {
           </div>
         </div>
 
-        {/* Center Main Text Panel */}
-        <div className="px-12 py-8 rounded-[40px] bg-white/70 backdrop-blur-2xl border border-white/50 shadow-[0_30px_60px_rgba(0,0,0,0.12)] transform scale-110">
-          <div className="font-display text-[8vw] md:text-[6vw] font-black tracking-widest text-[var(--color-charcoal)] uppercase text-center">
+        {/* Sequence 2 */}
+        <div ref={text2Ref} className="absolute flex flex-col items-center justify-center opacity-0">
+          <div className="font-display text-[8vw] md:text-[6vw] font-black tracking-tight text-[var(--color-charcoal)] leading-none drop-shadow-sm">
             <ScrollFloat
-              animationDuration={1.2}
+              animationDuration={1}
               ease="back.inOut(2)"
-              scrollStart="center bottom+=50%"
-              scrollEnd="center center"
-              stagger={0.04}
+              scrollStart="+=50%"
+              scrollEnd="+=150%"
+              stagger={0.03}
             >
-              React Bits
-            </ScrollFloat>
-          </div>
-        </div>
-
-        {/* Bottom Text Panel */}
-        <div className="mb-8 px-10 py-6 rounded-3xl bg-white/60 backdrop-blur-xl border border-white/40 shadow-2xl">
-          <div className="font-display text-[4vw] md:text-[3vw] font-bold text-[var(--color-leaf-green-800)]">
-            <ScrollFloat
-              animationDuration={1.2}
-              ease="power2.out"
-              scrollStart="bottom bottom"
-              scrollEnd="bottom top+=20%"
-              stagger={0.04}
-            >
-              Locally Pressed
+              Cold-Pressed
             </ScrollFloat>
           </div>
         </div>
