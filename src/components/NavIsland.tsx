@@ -55,13 +55,13 @@ const NavIsland: React.FC = () => {
 
   return (
     <header 
-      className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+      className={`fixed top-4 left-1/2 -translate-x-1/2 w-[95%] max-w-5xl z-50 transition-all duration-500 rounded-full ${
         isScrolled 
-          ? 'h-16 bg-[var(--color-paper-ivory)]/90 backdrop-blur-lg shadow-sm border-b border-black/5' 
-          : 'h-24 bg-transparent border-b border-transparent'
+          ? 'h-16 bg-[var(--color-paper-ivory)]/50 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.1)] border border-white/50' 
+          : 'h-20 bg-[var(--color-paper-ivory)]/20 backdrop-blur-md shadow-lg border border-white/30'
       }`}
     >
-      <div className="container mx-auto px-4 h-full flex items-center justify-between">
+      <div className="container mx-auto px-6 h-full flex items-center justify-between">
         <a 
           href="#home" 
           onClick={(e) => handleSmoothScroll(e, 'home')}

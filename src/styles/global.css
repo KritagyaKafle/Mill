@@ -1,19 +1,40 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Lobster&family=Outfit:wght@300;400;500;600&display=swap');
 
 @theme {
-  --color-leaf-green-50: #f0f5ec;
-  --color-leaf-green-100: #d4e4c8;
-  --color-leaf-green-500: #2D5016;
-  --color-leaf-green-800: #1a3a08;
-  --color-leaf-green-900: #0d2104;
-  --color-mustard-gold: #C8A23C;
-  --color-mustard-gold-light: #E8D48A;
-  --color-paper-ivory: #F5F0E8;
-  --color-earth-red: #8B3A2F;
-  --color-oil-amber: #D4960A;
-  --color-charcoal: #1C1C1C;
-  --color-warm-white: #FDFBF7;
+  --color-leaf-green-50: #FAF8F5;
+  --color-leaf-green-100: #EADCB9;
+  --color-leaf-green-500: #9B7028;
+  --color-leaf-green-800: #422610;
+  --color-leaf-green-900: #2A1706;
+  --color-mustard-gold: #FFB300;
+  --color-mustard-gold-light: #FFD54F;
+  --color-paper-ivory: #FFF6E6;
+  --color-earth-red: #B83A24;
+  --color-oil-amber: #FF8F00;
+  --color-charcoal: #2E1F11;
+  --color-warm-white: #FFFCF7;
 
-  --font-display: 'Playfair Display', serif;
-  --font-body: 'Inter', sans-serif;
+  --font-display: 'Lobster', cursive;
+  --font-body: 'Lobster', cursive;
+  --font-sans: 'Outfit', sans-serif;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-150%) skewX(-20deg); }
+  50% { transform: translateX(150%) skewX(-20deg); }
+  100% { transform: translateX(150%) skewX(-20deg); }
+}
+
+.animate-shimmer {
+  animation: shimmer 3s infinite;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-paper-ivory);
+  color: var(--color-charcoal);
 }
