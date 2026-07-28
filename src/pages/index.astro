@@ -1,0 +1,124 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import NavIsland from '../components/NavIsland';
+import HeroCanvas from '../components/HeroCanvas';
+import TextReveal from '../components/TextReveal';
+import ParallaxSection from '../components/ParallaxSection';
+import MagneticButton from '../components/MagneticButton';
+---
+
+<BaseLayout>
+  <!-- Navigation (Phase 2) -->
+  <NavIsland client:load />
+
+  <main>
+    <!-- Home / Hero Section (Phase 3) -->
+    <section id="home" class="min-h-screen flex items-center justify-center pt-20 relative bg-[var(--color-paper-ivory)]">
+      <div class="text-center z-10 px-4">
+        <img src="/images/logo.webp" alt="Thank You Oil Mill Logo" class="w-32 md:w-48 mx-auto mb-8 drop-shadow-sm" />
+        <TextReveal client:load text="Mustard Oil" as="h1" className="font-display text-4xl md:text-6xl lg:text-7xl font-bold text-[var(--color-leaf-green-900)] mb-4" />
+        <p class="text-lg md:text-xl text-[var(--color-charcoal)]/80 mb-2">From Seed to Your Kitchen</p>
+        <p class="text-md text-[var(--color-charcoal)]/60 font-medium">बीउबाट तपाईंको भान्सासम्म</p>
+      </div>
+      
+      <!-- Scroll cue -->
+      <div class="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce opacity-70">
+        <svg class="w-8 h-8 text-[var(--color-leaf-green-800)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+        </svg>
+      </div>
+    </section>
+
+    <!-- Cinematic Canvas (Phase 4) -->
+    <HeroCanvas client:load />
+
+    <!-- Products Section (Phase 5) -->
+    <ParallaxSection client:load id="products" className="min-h-screen py-24 bg-[var(--color-warm-white)]">
+      <div class="container mx-auto px-4">
+        <h2 class="font-display text-4xl md:text-5xl font-bold text-center text-[var(--color-leaf-green-900)] mb-16">
+          <TextReveal client:load text="Our Products" />
+        </h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <!-- Mustard Oil Spotlight Card -->
+          <div class="bg-white rounded-2xl p-8 shadow-sm border border-[var(--color-leaf-green-100)] flex flex-col items-center text-center group hover:shadow-md transition-shadow">
+            <div class="w-full aspect-[4/3] bg-[var(--color-leaf-green-50)] rounded-xl mb-6 flex items-center justify-center overflow-hidden">
+              <img src="/images/products.webp" alt="Mustard Oil" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" />
+            </div>
+            <h3 class="font-display text-2xl font-bold text-[var(--color-charcoal)] mb-2">Mustard Oil</h3>
+            <p class="text-sm font-medium text-[var(--color-leaf-green-800)] mb-4">शुद्ध तोरीको तेल</p>
+            <p class="text-[var(--color-charcoal)]/70">Traditional mustard oil, locally pressed.</p>
+          </div>
+          
+          <!-- Masala (Coming Soon) -->
+          <div class="bg-[var(--color-paper-ivory)] rounded-2xl p-8 border border-black/5 flex flex-col items-center justify-center text-center opacity-70">
+            <h3 class="font-display text-2xl font-bold text-[var(--color-charcoal)] mb-2">Masala</h3>
+            <span class="inline-block px-3 py-1 bg-[var(--color-mustard-gold-light)] text-[var(--color-charcoal)] text-xs font-bold uppercase tracking-wider rounded-full">Coming Soon</span>
+          </div>
+
+          <!-- Flour (Coming Soon) -->
+          <div class="bg-[var(--color-paper-ivory)] rounded-2xl p-8 border border-black/5 flex flex-col items-center justify-center text-center opacity-70">
+            <h3 class="font-display text-2xl font-bold text-[var(--color-charcoal)] mb-2">Flour</h3>
+            <span class="inline-block px-3 py-1 bg-[var(--color-mustard-gold-light)] text-[var(--color-charcoal)] text-xs font-bold uppercase tracking-wider rounded-full">Coming Soon</span>
+          </div>
+        </div>
+      </div>
+    </ParallaxSection>
+
+    <!-- Contact Section (Phase 6) -->
+    <ParallaxSection client:load id="contact" className="py-24 bg-[var(--color-leaf-green-900)] text-[var(--color-paper-ivory)]">
+      <div class="container mx-auto px-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+          <div>
+            <h2 class="font-display text-4xl md:text-5xl font-bold text-[var(--color-mustard-gold)] mb-6">
+              <TextReveal client:load text="Contact Us" />
+            </h2>
+            <p class="text-lg text-[var(--color-paper-ivory)]/80 mb-8 max-w-md">
+              Visit our mill or get in touch for fresh, locally pressed mustard oil.
+            </p>
+            
+            <div class="space-y-6">
+              <div>
+                <h4 class="text-sm uppercase tracking-widest text-[var(--color-mustard-gold-light)] font-semibold mb-2">Visit Us</h4>
+                <p class="text-xl">Kusunti 13, Lalitpur</p>
+                <p class="text-[var(--color-paper-ivory)]/70 font-medium">कुसुन्ती १३, ललितपुर</p>
+              </div>
+              
+              <div>
+                <h4 class="text-sm uppercase tracking-widest text-[var(--color-mustard-gold-light)] font-semibold mb-4">Call Us</h4>
+                <div class="flex flex-col gap-4">
+                  <MagneticButton client:load href="tel:9845535198" className="bg-[var(--color-mustard-gold)] text-[var(--color-leaf-green-900)] px-6 py-3 rounded-full font-bold shadow-md hover:bg-[var(--color-mustard-gold-light)] text-center w-fit">
+                    Call 9845535198
+                  </MagneticButton>
+                  <MagneticButton client:load href="tel:9851349233" className="bg-[var(--color-mustard-gold)] text-[var(--color-leaf-green-900)] px-6 py-3 rounded-full font-bold shadow-md hover:bg-[var(--color-mustard-gold-light)] text-center w-fit">
+                    Call 9851349233
+                  </MagneticButton>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="w-full h-[400px] bg-black/20 rounded-2xl overflow-hidden border border-[var(--color-leaf-green-800)] relative">
+            <iframe 
+              title="Thank You Oil Mill Location"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d14132.88390771804!2d85.31294879510168!3d27.671842838407424!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39eb19cd798b3bf3%3A0x6b7774bc0f2f3f89!2sKusunti%2C%20Lalitpur%2044700!5e0!3m2!1sen!2snp!4v1700000000000!5m2!1sen!2snp" 
+              width="100%" 
+              height="100%" 
+              style="border:0;" 
+              allowfullscreen="" 
+              loading="lazy" 
+              referrerpolicy="no-referrer-when-downgrade"
+              class="absolute inset-0 grayscale opacity-90 mix-blend-luminosity hover:grayscale-0 hover:mix-blend-normal transition-all duration-500"
+            ></iframe>
+          </div>
+        </div>
+      </div>
+    </ParallaxSection>
+  </main>
+
+  <footer class="bg-black py-8 text-center text-[var(--color-paper-ivory)]/60 text-sm">
+    <div class="container mx-auto px-4">
+      <p>&copy; {new Date().getFullYear()} Thank You Company Pvt. Ltd. All rights reserved.</p>
+    </div>
+  </footer>
+</BaseLayout>
