@@ -67,8 +67,8 @@ const NavIsland: React.FC = () => {
           onClick={(e) => handleSmoothScroll(e, 'home')}
           className="flex items-center gap-3 group"
         >
-          <div className={`transition-all duration-300 overflow-hidden ${isScrolled ? 'w-10 h-10' : 'w-0 h-0 opacity-0'}`}>
-            <img src="/images/logo.webp" alt="Logo" className="w-full h-full object-contain" />
+          <div className={`transition-all duration-300 overflow-hidden rounded-full ${isScrolled ? 'w-10 h-10' : 'w-0 h-0 opacity-0'}`}>
+            <img src="/images/logo.webp" alt="Logo" className="w-full h-full object-cover rounded-full" />
           </div>
           <span className={`font-display font-bold text-[var(--color-leaf-green-900)] transition-all duration-300 ${isScrolled ? 'text-xl' : 'text-2xl'}`}>
             Thank You Oil Mill
