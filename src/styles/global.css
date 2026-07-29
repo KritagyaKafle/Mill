@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Lobster&family=Outfit:wght@300;400;500;600&display=swap');
 
 @theme {
   --color-leaf-green-50: #FAF8F5;
@@ -15,9 +14,10 @@
   --color-charcoal: #2E1F11;
   --color-warm-white: #FFFCF7;
 
-  --font-display: 'Lobster', cursive;
-  --font-body: 'Lobster', cursive;
-  --font-sans: 'Outfit', sans-serif;
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-body: 'Manrope', 'Noto Sans Devanagari', system-ui, sans-serif;
+  --font-sans: 'Manrope', 'Noto Sans Devanagari', system-ui, sans-serif;
+  --font-nepali: 'Noto Sans Devanagari', system-ui, sans-serif;
 }
 
 @keyframes shimmer {
@@ -37,4 +37,17 @@ html {
 body {
   background-color: var(--color-paper-ivory);
   color: var(--color-charcoal);
+}
+
+h1,
+h2,
+h3,
+.font-display {
+  letter-spacing: -0.035em;
+}
+
+:lang(ne),
+.font-nepali {
+  font-family: var(--font-nepali);
+  letter-spacing: 0;
 }
