@@ -39,11 +39,14 @@ export default function MagicRings({
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     
     let animationFrameId: number;
     let time = 0;
+    let isVisible = true;
+    let isPageVisible = !document.hidden;
 
-    const render = () => {
+    const drawFrame = () => {
       time += 0.01 * speed;
       const width = canvas.width;
       const height = canvas.height;
@@ -71,20 +74,38 @@ export default function MagicRings({
         ctx.stroke();
       }
 
+      ctx.globalAlpha = 1;
+    };
+
+    const render = () => {
+      if (isVisible && isPageVisible) drawFrame();
       animationFrameId = requestAnimationFrame(render);
     };
 
     const resize = () => {
       canvas.width = canvas.offsetWidth;
       canvas.height = canvas.offsetHeight;
+      drawFrame();
     };
 
+    const handleVisibilityChange = () => {
+      isPageVisible = !document.hidden;
+    };
+
+    const observer = new IntersectionObserver(([entry]) => {
+      isVisible = entry.isIntersecting;
+    }, { rootMargin: '200px' });
+
     window.addEventListener('resize', resize);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    observer.observe(canvas);
     resize();
     render();
 
     return () => {
       window.removeEventListener('resize', resize);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      observer.disconnect();
       cancelAnimationFrame(animationFrameId);
     };
   }, [color, colorTwo, ringCount, speed, lineThickness, baseRadius, radiusStep, opacity]);

@@ -14,57 +14,120 @@ const HeroCanvas: React.FC = () => {
   const text3Ref = useRef<HTMLDivElement>(null);
   const productRef = useRef<HTMLImageElement>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
-  const frameCount = 80;
+  const [liteEffects, setLiteEffects] = useState(false);
+  const totalFrames = 80;
 
   useEffect(() => {
+    const memory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 8;
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    setReducedMotion(prefersReducedMotion);
+    const smallTouchScreen = window.matchMedia('(max-width: 767px), (pointer: coarse) and (max-width: 900px)').matches;
+    const shouldUseLiteEffects = memory <= 4 || window.matchMedia('(max-width: 1200px)').matches;
+    const shouldUseStaticHero = prefersReducedMotion || smallTouchScreen;
 
-    if (prefersReducedMotion) return;
+    setReducedMotion(shouldUseStaticHero);
+    setLiteEffects(shouldUseLiteEffects);
+
+    if (shouldUseStaticHero) return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    const frameStep = shouldUseLiteEffects ? 2 : 1;
+    const frameNumbers: number[] = [];
+    for (let frame = 1; frame <= totalFrames; frame += frameStep) {
+      frameNumbers.push(frame);
+    }
+    if (frameNumbers[frameNumbers.length - 1] !== totalFrames) {
+      frameNumbers.push(totalFrames);
+    }
 
-    const loadedImages: HTMLImageElement[] = [];
-    let imagesLoaded = 0;
+    const loadedImages: Array<HTMLImageElement | undefined> = [];
+    let idleHandle: number | undefined;
+    let isCancelled = false;
+
+    const resizeCanvas = () => {
+      const maxRenderWidth = shouldUseLiteEffects ? 1100 : 1600;
+      const scale = Math.min(1, maxRenderWidth / window.innerWidth);
+      canvas.width = Math.round(window.innerWidth * scale);
+      canvas.height = Math.round(window.innerHeight * scale);
+    };
+
+    const getNearestLoadedImage = (frameIndex: number) => {
+      for (let offset = 0; offset < frameNumbers.length; offset++) {
+        const previous = loadedImages[frameIndex - offset];
+        if (previous) return previous;
+
+        const next = loadedImages[frameIndex + offset];
+        if (next) return next;
+      }
+      return undefined;
+    };
 
     const render = (frameIndex: number) => {
-      if (loadedImages[frameIndex]) {
+      const image = getNearestLoadedImage(Math.round(frameIndex));
+      if (image) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
         // Use object-cover behavior to eliminate borders
-        const hRatio = canvas.width / loadedImages[frameIndex].width;
-        const vRatio = canvas.height / loadedImages[frameIndex].height;
+        const hRatio = canvas.width / image.width;
+        const vRatio = canvas.height / image.height;
         const ratio = Math.max(hRatio, vRatio);
-        const centerShift_x = (canvas.width - loadedImages[frameIndex].width * ratio) / 2;
-        const centerShift_y = (canvas.height - loadedImages[frameIndex].height * ratio) / 2;
+        const centerShift_x = (canvas.width - image.width * ratio) / 2;
+        const centerShift_y = (canvas.height - image.height * ratio) / 2;
         
         ctx.drawImage(
-           loadedImages[frameIndex], 0, 0, loadedImages[frameIndex].width, loadedImages[frameIndex].height,
-           centerShift_x, centerShift_y, loadedImages[frameIndex].width * ratio, loadedImages[frameIndex].height * ratio
+           image, 0, 0, image.width, image.height,
+           centerShift_x, centerShift_y, image.width * ratio, image.height * ratio
         );
       }
     };
 
-    for (let i = 0; i < frameCount; i++) {
+    const playhead = { frame: 0 };
+
+    const loadFrame = (imageIndex: number) => {
+      if (loadedImages[imageIndex]) return;
       const img = new Image();
-      const frameStr = String(i + 1).padStart(3, '0');
+      img.decoding = 'async';
+      const frameStr = String(frameNumbers[imageIndex]).padStart(3, '0');
       img.src = `/images/hero-frames/${frameStr}.webp`;
       img.onload = () => {
-        imagesLoaded++;
-        if (imagesLoaded === 1) {
-          render(0);
+        if (isCancelled) return;
+        loadedImages[imageIndex] = img;
+        if (imageIndex === 0 || Math.abs(imageIndex - playhead.frame) <= 2) {
+          render(playhead.frame);
         }
       };
-      loadedImages.push(img);
-    }
+    };
 
-    const playhead = { frame: 0 };
+    let nextImageIndex = 0;
+    const scheduleFrameLoad = () => {
+      const loadBatch = () => {
+        if (isCancelled) return;
+
+        let loadedInBatch = 0;
+        while (nextImageIndex < frameNumbers.length && loadedInBatch < 4) {
+          loadFrame(nextImageIndex);
+          nextImageIndex++;
+          loadedInBatch++;
+        }
+
+        if (nextImageIndex < frameNumbers.length) {
+          if ('requestIdleCallback' in window) {
+            idleHandle = window.requestIdleCallback(loadBatch, { timeout: 500 });
+          } else {
+            idleHandle = window.setTimeout(loadBatch, 80);
+          }
+        }
+      };
+
+      loadBatch();
+    };
+
+    resizeCanvas();
+    scheduleFrameLoad();
+
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: sectionRef.current,
@@ -78,7 +141,7 @@ const HeroCanvas: React.FC = () => {
 
     // Master Timeline for canvas frames
     tl.to(playhead, {
-      frame: frameCount - 1,
+      frame: frameNumbers.length - 1,
       snap: 'frame',
       ease: 'none',
       onUpdate: () => render(playhead.frame)
@@ -96,15 +159,22 @@ const HeroCanvas: React.FC = () => {
     tl.fromTo(productRef.current, { opacity: 0, scale: 0.95 }, { opacity: 1, scale: 1, duration: 0.15, ease: 'power2.out' }, 0.50);
 
     const handleResize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      resizeCanvas();
       render(playhead.frame);
     };
     window.addEventListener('resize', handleResize);
 
     return () => {
+      isCancelled = true;
       window.removeEventListener('resize', handleResize);
-      ScrollTrigger.getAll().forEach(t => t.kill());
+      if (idleHandle !== undefined) {
+        if ('cancelIdleCallback' in window) {
+          window.cancelIdleCallback(idleHandle);
+        } else {
+          window.clearTimeout(idleHandle);
+        }
+      }
+      tl.kill();
     };
   }, []);
 
@@ -124,7 +194,7 @@ const HeroCanvas: React.FC = () => {
       </div>
 
       {/* Full Canvas Liquid Glass Overlay (Warm Tint) */}
-      <div className="absolute inset-0 z-10 backdrop-blur-md pointer-events-none mix-blend-normal" style={{ backgroundColor: 'rgba(255, 249, 230, 0.4)' }}></div>
+      <div className={`absolute inset-0 z-10 pointer-events-none mix-blend-normal ${liteEffects ? '' : 'backdrop-blur-md'}`} style={{ backgroundColor: 'rgba(255, 249, 230, 0.4)' }}></div>
 
       {/* TextPressure Sequence 3 - Placed BEHIND the bottle (z-14) */}
       <div className="absolute inset-0 flex items-center justify-center z-14 pointer-events-none">

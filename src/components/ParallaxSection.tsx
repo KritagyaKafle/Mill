@@ -15,9 +15,10 @@ const ParallaxSection: React.FC<Props> = ({ children, className = '', id }) => {
 
   useEffect(() => {
     if (!bgRef.current) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     
     // Smooth subtle parallax depth on background elements
-    gsap.to(bgRef.current, {
+    const tween = gsap.to(bgRef.current, {
       y: '15%',
       ease: 'none',
       scrollTrigger: {
@@ -27,6 +28,11 @@ const ParallaxSection: React.FC<Props> = ({ children, className = '', id }) => {
         scrub: true,
       }
     });
+
+    return () => {
+      tween.scrollTrigger?.kill();
+      tween.kill();
+    };
   }, []);
 
   return (

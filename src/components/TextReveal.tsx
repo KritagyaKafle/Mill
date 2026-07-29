@@ -15,9 +15,10 @@ const TextReveal: React.FC<Props> = ({ text, as: Component = 'span', className =
 
   useEffect(() => {
     if (!containerRef.current) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const words = containerRef.current.querySelectorAll('.reveal-word');
     
-    gsap.fromTo(
+    const tween = gsap.fromTo(
       words,
       { y: 30, opacity: 0 },
       {
@@ -32,6 +33,11 @@ const TextReveal: React.FC<Props> = ({ text, as: Component = 'span', className =
         }
       }
     );
+
+    return () => {
+      tween.scrollTrigger?.kill();
+      tween.kill();
+    };
   }, []);
 
   return (

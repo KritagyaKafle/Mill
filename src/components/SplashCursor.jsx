@@ -25,6 +25,9 @@ function SplashCursor({
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    const lowMemoryDevice = (navigator.deviceMemory || 8) <= 2;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (lowMemoryDevice || reduceMotion) return;
 
     // Track if the effect is still active for cleanup
     let isActive = true;
@@ -677,16 +680,36 @@ function SplashCursor({
     initFramebuffers();
     let lastUpdateTime = Date.now();
     let colorUpdateTimer = 0.0;
+    let isLoopRunning = false;
+    let isPageVisible = !document.hidden;
+    let activeUntil = 0;
+
+    function keepSimulationAlive(duration = 2200) {
+      activeUntil = Date.now() + duration;
+      if (!isLoopRunning && isPageVisible) {
+        isLoopRunning = true;
+        lastUpdateTime = Date.now();
+        animationFrameId.current = requestAnimationFrame(updateFrame);
+      }
+    }
 
     function updateFrame() {
       if (!isActive) return;
+      if (!isPageVisible) {
+        isLoopRunning = false;
+        return;
+      }
       const dt = calcDeltaTime();
       if (resizeCanvas()) initFramebuffers();
       updateColors(dt);
       applyInputs();
       step(dt);
       render(null);
-      animationFrameId.current = requestAnimationFrame(updateFrame);
+      if (Date.now() < activeUntil || pointers.some(p => p.down || p.moved)) {
+        animationFrameId.current = requestAnimationFrame(updateFrame);
+      } else {
+        isLoopRunning = false;
+      }
     }
 
     function calcDeltaTime() {
@@ -985,6 +1008,7 @@ function SplashCursor({
       let posY = scaleByPixelRatio(e.clientY);
       updatePointerDownData(pointer, -1, posX, posY);
       clickSplat(pointer);
+      keepSimulationAlive();
     }
 
     let firstMouseMoveHandled = false;
@@ -999,6 +1023,7 @@ function SplashCursor({
       } else {
         updatePointerMoveData(pointer, posX, posY, pointer.color);
       }
+      keepSimulationAlive();
     }
 
     function handleTouchStart(e) {
@@ -1009,6 +1034,7 @@ function SplashCursor({
         let posY = scaleByPixelRatio(touches[i].clientY);
         updatePointerDownData(pointer, touches[i].identifier, posX, posY);
       }
+      keepSimulationAlive();
     }
 
     function handleTouchMove(e) {
@@ -1019,6 +1045,7 @@ function SplashCursor({
         let posY = scaleByPixelRatio(touches[i].clientY);
         updatePointerMoveData(pointer, posX, posY, pointer.color);
       }
+      keepSimulationAlive();
     }
 
     function handleTouchEnd(e) {
@@ -1026,6 +1053,18 @@ function SplashCursor({
       let pointer = pointers[0];
       for (let i = 0; i < touches.length; i++) {
         updatePointerUpData(pointer);
+      }
+      keepSimulationAlive(1200);
+    }
+
+    function handleVisibilityChange() {
+      isPageVisible = !document.hidden;
+      if (!isPageVisible && animationFrameId.current) {
+        cancelAnimationFrame(animationFrameId.current);
+        animationFrameId.current = null;
+        isLoopRunning = false;
+      } else if (Date.now() < activeUntil) {
+        keepSimulationAlive();
       }
     }
 
@@ -1035,8 +1074,7 @@ function SplashCursor({
     window.addEventListener('touchstart', handleTouchStart);
     window.addEventListener('touchmove', handleTouchMove, false);
     window.addEventListener('touchend', handleTouchEnd);
-
-    updateFrame();
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     // Cleanup function
     return () => {
@@ -1054,6 +1092,7 @@ function SplashCursor({
       window.removeEventListener('touchstart', handleTouchStart);
       window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('touchend', handleTouchEnd);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

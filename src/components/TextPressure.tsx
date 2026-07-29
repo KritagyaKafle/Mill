@@ -63,22 +63,15 @@ const TextPressure: React.FC<TextPressureProps> = ({
   }, [fontUrl]);
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      cursorRef.current.x = e.clientX;
-      cursorRef.current.y = e.clientY;
-    };
-    
-    const handleTouchMove = (e: TouchEvent) => {
-      const t = e.touches[0];
-      cursorRef.current.x = t.clientX;
-      cursorRef.current.y = t.clientY;
-    };
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('touchmove', handleTouchMove);
+    const container = containerRef.current;
+    if (!container) return;
 
-    let animationFrame: number;
-    const animate = () => {
+    let isVisible = false;
+    let raf = 0;
+
+    const updateText = () => {
       spansRef.current.forEach((span) => {
         if (!span) return;
         const rect = span.getBoundingClientRect();
@@ -99,15 +92,52 @@ const TextPressure: React.FC<TextPressureProps> = ({
         if (alpha) span.style.opacity = op.toString();
         if (scale) span.style.transform = `scale(${sc})`;
       });
-      animationFrame = requestAnimationFrame(animate);
     };
 
-    animate();
+    const scheduleUpdate = () => {
+      if (!isVisible || document.hidden || raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        updateText();
+      });
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      cursorRef.current.x = e.clientX;
+      cursorRef.current.y = e.clientY;
+      scheduleUpdate();
+    };
+    
+    const handleTouchMove = (e: TouchEvent) => {
+      const t = e.touches[0];
+      if (!t) return;
+      cursorRef.current.x = t.clientX;
+      cursorRef.current.y = t.clientY;
+      scheduleUpdate();
+    };
+
+    const observer = new IntersectionObserver(([entry]) => {
+      isVisible = entry.isIntersecting;
+      scheduleUpdate();
+    }, { rootMargin: '200px' });
+
+    observer.observe(container);
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    window.addEventListener('touchmove', handleTouchMove, { passive: true });
+    window.addEventListener('resize', scheduleUpdate);
+
+    if (window.matchMedia('(pointer: coarse)').matches) {
+      cursorRef.current.x = window.innerWidth / 2;
+      cursorRef.current.y = window.innerHeight / 2;
+    };
+    scheduleUpdate();
 
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('touchmove', handleTouchMove);
-      cancelAnimationFrame(animationFrame);
+      window.removeEventListener('resize', scheduleUpdate);
+      observer.disconnect();
+      cancelAnimationFrame(raf);
     };
   }, [weight, width, italic, alpha, scale]);
 

@@ -23,9 +23,13 @@ export default function TrueFocus({
 
   useEffect(() => {
     if (manualMode) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
     const interval = setInterval(() => {
+      if (document.hidden) return;
       setCurrentIndex((prev) => (prev + 1) % words.length);
     }, (animationDuration + pauseBetweenAnimations) * 1000);
+
     return () => clearInterval(interval);
   }, [manualMode, animationDuration, pauseBetweenAnimations, words.length]);
 

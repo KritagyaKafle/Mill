@@ -41,12 +41,13 @@ const ScrollFloat = ({
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
     const scroller = scrollContainerRef && scrollContainerRef.current ? scrollContainerRef.current : window;
 
     const charElements = el.querySelectorAll('.char');
 
-    gsap.fromTo(
+    const tween = gsap.fromTo(
       charElements,
       {
         willChange: 'opacity, transform',
@@ -73,6 +74,11 @@ const ScrollFloat = ({
         }
       }
     );
+
+    return () => {
+      tween.scrollTrigger?.kill();
+      tween.kill();
+    };
   }, [scrollContainerRef, animationDuration, ease, scrollStart, scrollEnd, stagger]);
 
   return (
